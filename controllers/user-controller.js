@@ -1,5 +1,6 @@
 import UsersModel from '../models/user-model.js'
 import bcrypt from 'bcrypt'
+import { generateToken } from '../utils.js';
 
 export const getAllUsers = async (req, res) => {
   const {email, limit } =  req.query;
@@ -86,8 +87,13 @@ export const login = async (req, res, next) => {
     err.status = 401;
     return next(err);
   }
+
+  //generate jwt token
+  const token = generateToken(user)
+
   res.status(200).json({
     message: 'Login successful',
+    token,
     user: {
       firstName: user.firstName,
       lastName: user.lastName,

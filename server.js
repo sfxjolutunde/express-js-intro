@@ -10,7 +10,7 @@ import {v2 as cloudinary} from 'cloudinary';
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 8000;
+const port = process.env.PORT || 5000;
 
 cloudinary.config({ 
   cloud_name: process.env.CLOUD_NAME, 
@@ -62,12 +62,14 @@ app.post('/upload', upload.single('file'), async (req, res) => {
   
   app.use(errorHandler)
 
-  mongoose.connect('mongodb://localhost:27017/express_intro').then(() => {
-    console.log('Connected to MongoDB');
-  }
-  ).catch((err) => {
-    console.log('Error connecting to MongoDB', err);
-  });
+  mongoose
+    .connect(process.env.M0NGODB_URI)
+    .then(() => {
+      console.log("Connected to MongoDB");
+    })
+    .catch((err) => {
+      console.log("Error connecting to MongoDB", err);
+    });
 
 
 
