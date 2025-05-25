@@ -1,13 +1,15 @@
 import express from 'express'
-import { getAllUsers, createUser, getOneUser, login } from '../controllers/user-controller.js'
+import { getAllUsers, signUp, getOneUser, login } from '../controllers/user-controller.js'
+import { protect } from '../middlewares/auth.js';
+import { authorizeRoles } from '../middlewares/role-based-guard.js';
 
 const router = express.Router()
 
-router.get('/', getAllUsers)
+router.get('/',protect,authorizeRoles('admin'), getAllUsers)
 
-router.post('/', createUser)
+router.post('/signUp', signUp)
 
-router.get('/:id', getOneUser)
+router.get('/:id',protect,authorizeRoles('admin'), getOneUser)
 
 // router.put('/:id', )
 

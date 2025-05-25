@@ -31,7 +31,6 @@ export const createPost = async (req, res, next) => {
     err.status = 400;
     return next(err);
   }
-
   try {
     const newBlog = new Blog({
       title,
@@ -43,7 +42,6 @@ export const createPost = async (req, res, next) => {
     console.log("newBlog", newBlog);
 
     await newBlog.save();
-
     // Respond inside the try block to ensure newBlog is defined
     res.status(201).json({
       message: "Blog created successfully",
@@ -69,6 +67,32 @@ export const getPost = async (req, res, next) => {
   }
   res.status(200).json({
     msg: "Blog retrieved successfully",
+    blog,
+  });
+};
+
+export const updatePost = async (req, res, next) => {
+  const { title, content, review } = req.body;
+  if (!title || !content) {
+    const err = new Error("Title or Content is missing!");
+    err.status = 400;
+    return next(err);
+  }
+
+  const blog = await Blog.findByIdAndUpdate(
+    req.params.id,
+    { title, content, review },
+    { new: true }
+  );
+
+  if (!blog) {
+    const error = new Error("Blog does not exist");
+    error.status = 404;
+    return next(error);
+  }
+
+  res.status(200).json({
+    msg: "Blog updated successfully",
     blog,
   });
 };

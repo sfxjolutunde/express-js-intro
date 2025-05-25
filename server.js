@@ -7,6 +7,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import multer from 'multer';
 import {v2 as cloudinary} from 'cloudinary';
+import cookieParser from 'cookie-parser';
 dotenv.config();
 
 const app = express();
@@ -21,6 +22,7 @@ cloudinary.config({
 const upload = multer();
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.use(logger);
 
