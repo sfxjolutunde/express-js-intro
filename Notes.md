@@ -42,3 +42,5 @@ Authorization: "Prove you're allowed to do that." -->
 | **Typical Tools**  | JWT, sessions, OAuth                  | RBAC (Role-Based Access Control), ACL          |
 | **In JWT Auth**    | Token creation (login)                | Token validation and role check (resource use) |
 | **Error Examples** | ❌ "Invalid password"                 | ❌ "You don't have permission to view this"    |
+
+
