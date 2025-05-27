@@ -14,9 +14,9 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 cloudinary.config({ 
-  cloud_name: process.env.CLOUD_NAME, 
-  api_key: process.env.CLOUD_KEY, 
-  api_secret: process.env.CLOUD_SEC
+	cloud_name: process.env.CLOUD_NAME, 
+	api_key: process.env.CLOUD_KEY, 
+	api_secret: process.env.CLOUD_SEC
 });
 
 const upload = multer();
@@ -31,47 +31,47 @@ app.use('/users', userRoutes);
 
 app.post('/upload', upload.single('file'), async (req, res) => {
 
-  console.log('req.file', req.file)
-  if(!req.file) {
-    const err = new Error('File is missing!')
-    err.status = 400;
-    return res.status(400).json({message: 'File is missing!'})
-  }
+	console.log('req.file', req.file)
+	if(!req.file) {
+		const err = new Error('File is missing!')
+		err.status = 400;
+		return res.status(400).json({message: 'File is missing!'})
+	}
 
-  if(req.file.mimetype !== 'image/png' && req.file.mimetype !== 'image/jpeg') {
-    const err = new Error('File type is not supported!')
-    err.status = 400;
-    return res.status(400).json({message: 'File type is not supported!'})
-  }
-
-
-  const b64 =  Buffer.from(req.file.buffer).toString('base64')
-  let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
-
-  console.log('dataURI', dataURI)
-
-    const uploadedImage = await cloudinary.uploader.upload(dataURI)
-    res.status(200).json({message: 'File uploaded successfully!', data: uploadedImage})
-  }
-  )
+	if(req.file.mimetype !== 'image/png' && req.file.mimetype !== 'image/jpeg') {
+		const err = new Error('File type is not supported!')
+		err.status = 400;
+		return res.status(400).json({message: 'File type is not supported!'})
+	}
 
 
-  app.use((req, res, next) => {
-    const error = new Error('Route Not Found!')
-    error.status = 404;
-    next(error)
-  })
-  
-  app.use(errorHandler)
+	const b64 = Buffer.from(req.file.buffer).toString('base64')
+	let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
 
-  mongoose
-    .connect(process.env.M0NGODB_URI)
-    .then(() => {
-      console.log("Connected to MongoDB");
-    })
-    .catch((err) => {
-      console.log("Error connecting to MongoDB", err);
-    });
+	console.log('dataURI', dataURI)
+
+		const uploadedImage = await cloudinary.uploader.upload(dataURI)
+		res.status(200).json({message: 'File uploaded successfully!', data: uploadedImage})
+	}
+	)
+
+
+	app.use((req, res, next) => {
+		const error = new Error('Route Not Found!')
+		error.status = 404;
+		next(error)
+	})
+
+	app.use(errorHandler)
+
+	mongoose
+		.connect(process.env.M0NGODB_URI)
+		.then(() => {
+			console.log("Connected to MongoDB");
+		})
+		.catch((err) => {
+			console.log("Error connecting to MongoDB", err);
+		});
 
 
 

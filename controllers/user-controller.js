@@ -35,10 +35,6 @@ export const signUp = async (req, res, next) => {
     return next(err);
   }
 
-  console.log("newUser password", newUser.password);
-  // Hash the password
-  const hashedPassword = await bcrypt.hash(newUser.password, 10);
-  newUser.password = hashedPassword;
 
   const existingUser = await UsersModel.findOne({ email: newUser.email });
   if (existingUser) {
@@ -50,7 +46,7 @@ export const signUp = async (req, res, next) => {
   const savedUser = await UsersModel.create(newUser);
 
   res.status(201).json({
-    message: "Blog created successfully",
+    message: "User created successfully",
     savedUser: {
       firstName: savedUser.firstName,
       lastName: savedUser.lastName,
