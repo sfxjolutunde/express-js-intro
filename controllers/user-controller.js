@@ -1,6 +1,6 @@
 import UsersModel from "../models/user-model.js";
 import bcrypt from "bcrypt";
-import { generateToken } from "../utils.js";
+import { generateToken } from "../utils/utils.js";
 
 export const getAllUsers = async (req, res) => {
   const { email, limit } = req.query;
@@ -11,7 +11,9 @@ export const getAllUsers = async (req, res) => {
   }
 
   const usersResponse = await UsersModel.find().limit(limit);
-  res.status(200).json({ message: "users fetched Successfully", usersResponse });
+  res
+    .status(200)
+    .json({ message: "users fetched Successfully", usersResponse });
 };
 
 export const signUp = async (req, res, next) => {
@@ -27,7 +29,6 @@ export const signUp = async (req, res, next) => {
     err.status = 400;
     return next(err);
   }
-
 
   if (!newUser.password) {
     const err = new Error("Password is missing!");
@@ -55,7 +56,7 @@ export const signUp = async (req, res, next) => {
       firstName: savedUser.firstName,
       lastName: savedUser.lastName,
       email: savedUser.email,
-      role: savedUser.role
+      role: savedUser.role,
     },
   });
 };

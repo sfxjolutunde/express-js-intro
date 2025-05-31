@@ -1,8 +1,19 @@
 import Blog from "../models/blog-model.js";
+import { getCache,setCache } from "../utils/cache.js";
 
 export const getPosts = async (req, res, next) => {
   const title = req.query.title;
   const limit = req.query.limit;
+  const cacheKey = `blogs:${title || 'all'}:${limit || 10}`;
+
+
+  // Check if the blogs are cached and return them if available
+  const cachedBlogs = getCache(cacheKey)
+  if (cachedBlogs) {
+    console.log("fetching from cache");
+   return res.status(200).json({message:'Blogs fetched Successfully',blogs: cachedBlogs});
+  }
+
   if (title) {
     const blogs = await Blog.find({ title });
     if (blogs.length === 0) {
@@ -21,6 +32,8 @@ export const getPosts = async (req, res, next) => {
     return next(error);
   }
 
+  // Set the cache with a key and value
+  setCache(cacheKey, blogs, 24* 60 * 60); // Cache for 24 hours
   res.status(200).json({ message: "Welcome To The Blog Page!", blogs });
 };
 
