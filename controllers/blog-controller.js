@@ -1,5 +1,6 @@
 import Blog from "../models/blog-model.js";
 import { getCache,setCache } from "../utils/cache.js";
+import redisClient from "../utils/redis-cache.js";
 
 export const getPosts = async (req, res, next) => {
   const title = req.query.title;
@@ -8,11 +9,19 @@ export const getPosts = async (req, res, next) => {
 
 
   // Check if the blogs are cached and return them if available
-  const cachedBlogs = getCache(cacheKey)
+  // const cachedBlogs = getCache(cacheKey)
+  // if (cachedBlogs) {
+  //   console.log("fetching from cache");
+  //  return res.status(200).json({message:'Blogs fetched Successfully',blogs: cachedBlogs});
+  // }
+
+  const cachedBlogs = await redisClient.get(cacheKey);
   if (cachedBlogs) {
     console.log("fetching from cache");
-   return res.status(200).json({message:'Blogs fetched Successfully',blogs: cachedBlogs});
+    return res.status(200).json({ message: 'Blogs fetched Successfully', blogs: JSON.parse(cachedBlogs) });
   }
+
+
 
   if (title) {
     const blogs = await Blog.find({ title });
@@ -33,7 +42,10 @@ export const getPosts = async (req, res, next) => {
   }
 
   // Set the cache with a key and value
-  setCache(cacheKey, blogs, 24* 60 * 60); // Cache for 24 hours
+  // setCache(cacheKey, blogs, 24* 60 * 60); // Cache for 24 hours
+  await redisClient.set(cacheKey, JSON.stringify(blogs), {
+    EX: 24 * 60 * 60, // Cache for 24 hours
+  });
   res.status(200).json({ message: "Welcome To The Blog Page!", blogs });
 };
 
