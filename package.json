@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "set NODE_OPTIONS=--experimental-vm-modules && jest --runInBand",
+    "test:watch": "set NODE_OPTIONS=--experimental-vm-modules && jest --watch",
     "start": "node server",
     "dev": "node --watch  server"
   },
@@ -24,6 +25,8 @@
     "redis": "^5.1.1"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.27.2",
+    "babel-jest": "^30.0.0-beta.3",
     "jest": "^30.0.0-beta.3",
     "mongodb-memory-server": "^10.1.4",
     "supertest": "^7.1.1"
