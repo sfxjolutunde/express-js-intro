@@ -1,4 +1,4 @@
-import { verifyToken } from "../utils.js";
+import { verifyToken } from "../utils/utils.js";
 
 export const protect = (req, res, next) => {
  const token = req.cookies.token 
