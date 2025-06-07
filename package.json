@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "set NODE_OPTIONS=--experimental-vm-modules && jest --runInBand",
+    "test": "jest",
     "test:watch": "set NODE_OPTIONS=--experimental-vm-modules && jest --watch",
     "start": "node server",
     "dev": "node --watch  server"
@@ -25,6 +25,7 @@
     "redis": "^5.1.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.27.4",
     "@babel/preset-env": "^7.27.2",
     "babel-jest": "^30.0.0-beta.3",
     "jest": "^30.0.0-beta.3",

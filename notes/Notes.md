@@ -56,7 +56,7 @@ Authorization: "Prove you're allowed to do that." -->
 **User Model**
 
 ```js
-const mongoose = require('mongoose');
+import {mongoose} from 'mongoose'
 
 const UserSchema = new mongoose.Schema({
   firstName: { type: String, required: true },
@@ -72,7 +72,7 @@ module.exports = mongoose.model('User', UserSchema);
 **Blog Model**
 
 ```js
-const mongoose = require('mongoose');
+import {mongoose} from 'mongoose'
 
 const BlogSchema = new mongoose.Schema({
   title: { type: String, required: true },
@@ -95,7 +95,7 @@ module.exports = mongoose.model('Blog', BlogSchema);
 **JWT Middleware**
 
 ```js
-const jwt = require('jsonwebtoken');
+import {jwt} from 'jsonwebtoken';
 
 function authMiddleware(req, res, next) {
   const token = req.headers['authorization']?.split(' ')[1];
@@ -143,7 +143,7 @@ app.delete('/api/users/:id', authMiddleware, authorizeRoles('admin'), deleteUser
 **Local Cache (Node-cache)**
 
 ```js
-const NodeCache = require('node-cache');
+import node-cache as NodeCache from 'node-cache'
 const cache = new NodeCache({ stdTTL: 60 });
 
 function cacheMiddleware(req, res, next) {
@@ -162,7 +162,7 @@ function cacheMiddleware(req, res, next) {
 **Redis Cache**
 
 ```js
-const redis = require('redis');
+import redis as redis from 'redis'
 const client = redis.createClient();
 await client.connect();
 

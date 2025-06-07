@@ -3,17 +3,24 @@ import bcrypt from "bcrypt";
 import { generateToken } from "../utils/utils.js";
 
 export const getAllUsers = async (req, res) => {
-  const { email, limit } = req.query;
+  let { email, limit } = req.query;
   if (email) {
     const user = await UsersModel.find({ email: email });
     res.status(200).json(user);
     return;
   }
 
+  if(!limit || isNaN(limit) || limit <= 0) {
+    limit = 10; // Default limit to 10 if not provided or invalid
+  }
   const usersResponse = await UsersModel.find().limit(limit);
+  if (!usersResponse || usersResponse.length === 0) {
+    return res.status(404).json({ message: "No users found" });
+  }
   res
     .status(200)
     .json({ message: "users fetched Successfully", usersResponse });
+
 };
 
 export const signUp = async (req, res, next) => {
@@ -25,7 +32,7 @@ export const signUp = async (req, res, next) => {
     role: req.body.role || "user", // Default role is 'user'
   };
   if (!newUser.firstName || !newUser.lastName || !newUser.email) {
-    const err = new Error("First Name, Last Name and Email is missing!");
+    const err = new Error("First Name, Last Name and Email are required!");
     err.status = 400;
     return next(err);
   }

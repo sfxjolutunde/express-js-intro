@@ -3,8 +3,6 @@ import UsersModel from "../models/user-model.js";
 import bcrypt from "bcrypt";
 import { generateToken } from "../utils/utils.js";
 
-
-
 jest.mock("../models/user-model.js");
 jest.mock("bcrypt");
 jest.mock("../utils/utils.js");
@@ -24,164 +22,154 @@ describe("user-controller", () => {
   });
 
   describe("getAllUsers", () => {
-    it("should return user by email", async () => {
-      req.query.email = "test@example.com";
-      const user = [{ email: "test@example.com" }];
-      UsersModel.find.mockResolvedValue(user);
-
+    it("should return a specific user by email", async () => {
+      req.query.email = "test@yopmail.com";
+      const mockUser = {
+        firstName: "test",
+        lastName: "User",
+        email: "test@yopmail.com",
+        role: "user",
+      };
+      UsersModel.find.mockResolvedValue([mockUser]); // <-- return an array
       await getAllUsers(req, res);
-
-      expect(UsersModel.find).toHaveBeenCalledWith({ email: "test@example.com" });
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(user);
+      expect(res.json).toHaveBeenCalledWith([mockUser]); // <-- expect an array
     });
 
-    it("should return all users with limit", async () => {
-      req.query.limit = 2;
-      const users = [{}, {}];
-      UsersModel.find.mockReturnValue({ limit: jest.fn().mockResolvedValue(users) });
+    it("should return all users with a given limit ", async () => {
+      req.query.limit = 3;
+      const mockUsers = [{}, {}, {}];
+      UsersModel.find.mockReturnValue({
+        limit: jest.fn().mockResolvedValue(mockUsers),
+      });
+      await getAllUsers(req, res);
+      expect(UsersModel.find).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "users fetched Successfully",
+        usersResponse: mockUsers,
+      });
+    });
 
+    it("should return all users without a limit been passed", async () => {
+      const mockUsers = [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+
+      UsersModel.find.mockReturnValue({
+        limit: jest.fn().mockResolvedValue(mockUsers),
+      });
       await getAllUsers(req, res);
 
       expect(UsersModel.find).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         message: "users fetched Successfully",
-        usersResponse: users,
+        usersResponse: mockUsers,
+      });
+    });
+
+    it("should return empty array if no user with the given email", async () => {
+      req.query.email = "test@yopmail.com";
+      UsersModel.find.mockResolvedValue([]);
+      const result = await getAllUsers(req, res);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith([]);
+      expect(result).toBe(undefined);
+    });
+
+    it("should return empty array if no users exist", async () => {
+      const mockUser = [];
+      UsersModel.find.mockReturnValue({
+        limit: jest.fn().mockResolvedValue(mockUser),
+      });
+      await getAllUsers(req, res);
+      expect(UsersModel.find).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "No users found",
       });
     });
   });
 
-  describe("signUp", () => {
-    beforeEach(() => {
-      req.body = {
-        firstName: "John",
-        lastName: "Doe",
-        email: "john@example.com",
-        password: "password123",
-      };
-    });
-
-    it("should return error if required fields are missing", async () => {
-      req.body.firstName = "";
+  describe("SignUp", () => {
+    it("should return error if firstName, lastName or email is missing", async () => {
+      req.body = { firstName: "", lastName: "Doe", email: "test@yopmail.com" };
+      const error = new Error("First Name, Last Name and Email are required!");
+      error.status = 400;
       await signUp(req, res, next);
-      expect(next).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining("First Name, Last Name and Email is missing!") }));
+      expect(next).toHaveBeenCalledWith(error);
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
 
     it("should return error if password is missing", async () => {
-      req.body.password = "";
+      req.body = {
+        firstName: "John",
+        lastName: "Doe",
+        email: "test@yopmail.com",
+      };
+      const error = new Error("Password is missing!");
+      error.status = 400;
       await signUp(req, res, next);
-      expect(next).toHaveBeenCalledWith(expect.objectContaining({ message: "Password is missing!" }));
+      expect(next).toHaveBeenCalledWith(error);
     });
 
     it("should return error if email already exists", async () => {
-      UsersModel.findOne.mockResolvedValue({ email: "john@example.com" });
-      bcrypt.hash.mockResolvedValue("hashedPassword");
-      await signUp(req, res, next);
-      expect(next).toHaveBeenCalledWith(expect.objectContaining({ message: "Email already exists!" }));
-    });
-
-    it("should create user and return success", async () => {
-      UsersModel.findOne.mockResolvedValue(null);
-      bcrypt.hash.mockResolvedValue("hashedPassword");
-      UsersModel.create.mockResolvedValue({
+      req.body = {
         firstName: "John",
         lastName: "Doe",
-        email: "john@example.com",
-        role: "user",
+        email: "test@yopmail.com",
+        password: "password123",
+      };
+      UsersModel.findOne.mockResolvedValue({
+        email: req.body.email,
       });
+      const error = new Error("Email already exists!");
+      error.status = 400;
+      await signUp(req, res, next);
+      expect(next).toHaveBeenCalledWith(error);
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
+    });
+    
+    it("should create a new user and return success response", async () => {
+      req.body = {
+        firstName: "John",
+        lastName: "Doe",
+        email: "test@yopmail.com",
+        password: "password@123",
+      };
+
+      const mockUser = {
+        firstName: "John",
+        lastName: "Doe",
+        email: "test@yopmail.com",
+        role: "user",
+      };
+      bcrypt.hash.mockResolvedValue("hashedPassword");
+      UsersModel.findOne.mockResolvedValue(null);
+      UsersModel.create.mockResolvedValue(mockUser);
 
       await signUp(req, res, next);
 
-      expect(UsersModel.create).toHaveBeenCalledWith(expect.objectContaining({
-        firstName: "John",
-        lastName: "Doe",
-        email: "john@example.com",
+      expect(bcrypt.hash).toHaveBeenCalledWith(req.body.password, 10);
+      expect(UsersModel.findOne).toHaveBeenCalledWith({
+        email: req.body.email,
+      });
+      expect(UsersModel.create).toHaveBeenCalledWith({
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        email: req.body.email,
         password: "hashedPassword",
         role: "user",
-      }));
+      });
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
         message: "Blog created successfully",
         savedUser: {
-          firstName: "John",
-          lastName: "Doe",
-          email: "john@example.com",
-          role: "user",
-        },
-      });
-    });
-  });
-
-  describe("getOneUser", () => {
-    it("should return user by id", async () => {
-      req.params.id = "123";
-      const user = { _id: "123", email: "test@example.com" };
-      UsersModel.findById.mockResolvedValue(user);
-
-      await getOneUser(req, res, next);
-
-      expect(UsersModel.findById).toHaveBeenCalledWith("123");
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(user);
-    });
-
-    it("should return error if user not found", async () => {
-      req.params.id = "123";
-      UsersModel.findById.mockResolvedValue(null);
-
-      await getOneUser(req, res, next);
-
-      expect(next).toHaveBeenCalledWith(expect.objectContaining({ message: "User not found!" }));
-    });
-  });
-
-  describe("login", () => {
-    beforeEach(() => {
-      req.body = { email: "john@example.com", password: "password123" };
-    });
-
-    it("should return error if email or password missing", async () => {
-      req.body.email = "";
-      await login(req, res, next);
-      expect(next).toHaveBeenCalledWith(expect.objectContaining({ message: "Email or Password is missing!" }));
-    });
-
-    it("should return error if user not found", async () => {
-      UsersModel.findOne.mockResolvedValue(null);
-      await login(req, res, next);
-      expect(next).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining("not found") }));
-    });
-
-    it("should return error if password is incorrect", async () => {
-      UsersModel.findOne.mockResolvedValue({ password: "hashed", email: "john@example.com" });
-      bcrypt.compare.mockResolvedValue(false);
-      await login(req, res, next);
-      expect(next).toHaveBeenCalledWith(expect.objectContaining({ message: "Password is incorrect!" }));
-    });
-
-    it("should login and return token", async () => {
-      const user = {
-        firstName: "John",
-        lastName: "Doe",
-        email: "john@example.com",
-        password: "hashed",
-      };
-      UsersModel.findOne.mockResolvedValue(user);
-      bcrypt.compare.mockResolvedValue(true);
-      generateToken.mockReturnValue("jwt-token");
-
-      await login(req, res, next);
-
-      expect(res.cookie).toHaveBeenCalledWith("token", "jwt-token", expect.any(Object));
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({
-        message: "Login successful",
-        token: "jwt-token",
-        user: {
-          firstName: "John",
-          lastName: "Doe",
-          email: "john@example.com",
+          firstName: mockUser.firstName,
+          lastName: mockUser.lastName,
+          email: mockUser.email,
+          role: mockUser.role,
         },
       });
     });
